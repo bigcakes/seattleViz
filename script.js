@@ -1,6 +1,10 @@
-
+//Found here originally
+//https://www.data.gov/highlights/
+//Full data
+//https://data.seattle.gov/Public-Safety/Seattle-Real-Time-Fire-911-Calls/kzjm-xkqj
 //April Seattle 911 Calls (depending on time zone, will actually start/end before/after April)
 //https://data.seattle.gov/resource/grwu-wqtk.json?$where=Datetime%3E%272016-04-1T00:00:00%27%20AND%20DateTime%20%3C%20%272016-05-1T00:00:00%27&$order=Datetime%20asc&$limit=50000
+
 (function (app) {
   "use strict";
 
@@ -28,7 +32,7 @@
     height = parseInt(d3.select('#chart').style("height"), 10) - margin.top - margin.bottom;
 
   var colors = ['#3182bd','#6baed6','#9ecae1','#c6dbef','#e6550d','#fd8d3c','#fdae6b','#fdd0a2','#31a354','#74c476','#a1d99b','#c7e9c0','#756bb1','#9e9ac8','#bcbddc','#dadaeb', '636363', '969696', 'bdbdbd', 'd9d9d9'];
-
+  var colorScale = d3.scale.category20();
 
   var canvas = d3.select('#chart')
     .append('svg')
@@ -65,16 +69,12 @@
       .domain([0,types.length])
       .range([0,height]);
 
-    var colorScale = d3.scale.quantize()
-      .domain([0, types.length])
-      .range(colors);
-
     //TODO: Fix axis moving around
     var yAxis = d3.svg.axis();
     yAxis
       .orient('left')
       .scale(yscale)
-      .tickSize(2)
+      .tickSize(1)
       .tickFormat(function(d,i){ return types[i]; })
       .tickValues(d3.range(types.length));
 
@@ -84,18 +84,14 @@
       .ease("quad") 
       .call(yAxis);
 
-    //var myColors = d3.scale.category20c();
     chart.selectAll('rect')
       .data(typeCounts)
       .enter()
       .append('rect')
       .attr({
-        fill: function(d,i){ return colorScale(i); },
+        fill: function (d, i) { return colorScale(i); },
         class: "bar"
       });
-      //.attr({x:0,y:function(d,i){ return yscale(i)+19; }, fill: myColors});
-      //.style('fill',function(d,i){ return colorScale(i); })
-      //.attr('width',function(d){ return 0; });
 
     var transit = chart.selectAll("rect")
       .data(typeCounts)
@@ -114,7 +110,6 @@
       .enter()
       .append('text')
       .attr("class", "bar-label")
-      //.style({'fill':'#fff','font-size':'16px'});
 
     d3.select("#bars")
       .selectAll("text")
