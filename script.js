@@ -38,6 +38,10 @@
     .attr("transform", "translate(150,0)")
     .attr('id','bars');
 
+  var yAxisElement = canvas.append('g')
+    .attr("transform", "translate(150,28)")
+    .attr('id','yaxis');
+
   var redrawChart = function () {
     var types = displayedData
       .map(function (item) { return item.type })
@@ -51,11 +55,11 @@
       );
     }
 
-    var maxCount = Math.max(...typeCounts);
+    var maxCount = d3.max(typeCounts);
 
     var xscale = d3.scale.linear()
       .domain([0,maxCount])
-      .range([0,width]); //TODO: Add margin
+      .range([0,width - 150]); //Remove the left offset
 
     var yscale = d3.scale.linear()
       .domain([0,types.length])
@@ -72,11 +76,12 @@
       .scale(yscale)
       .tickSize(2)
       .tickFormat(function(d,i){ return types[i]; })
-      .tickValues(d3.range(17));
+      .tickValues(d3.range(types.length));
 
-    var y_xis = canvas.append('g')
-      .attr("transform", "translate(150,0)")
-      .attr('id','yaxis')
+    var y_xis = yAxisElement
+      .transition()
+      .duration(1000)
+      .ease("quad") 
       .call(yAxis);
 
     //var myColors = d3.scale.category20c();
@@ -85,17 +90,17 @@
       .enter()
       .append('rect')
       .attr({
-        x: 0,
         fill: function(d,i){ return colorScale(i); }
       });
       //.attr({x:0,y:function(d,i){ return yscale(i)+19; }, fill: myColors});
       //.style('fill',function(d,i){ return colorScale(i); })
       //.attr('width',function(d){ return 0; });
 
-    var transit = d3.select("svg").selectAll("rect")
+    var transit = chart.selectAll("rect")
       .data(typeCounts)
       .transition()
       .duration(1000) 
+      .ease("quad")
       .attr({
         height: height / types.length,
         width: function(d) { return xscale(d); },
@@ -107,12 +112,19 @@
       .data(typeCounts)
       .enter()
       .append('text')
+      .attr("class", "bar-label")
+      .style({'fill':'#fff','font-size':'16px'});
+
+    d3.select("#bars")
+      .selectAll("text")
+      .transition()
+      .duration(1000)
+      .ease("quad")
       .text(function(d){ return d; })
       .attr({
-        x:function(d) { return xscale(d)-50; },
+        x:function(d) { return xscale(d)-20; },
         y:function(d,i){ return yscale(i)+35; }
       })
-      .style({'fill':'#fff','font-size':'16px'});
   }
 
   var startClockCycle = function(data) {
