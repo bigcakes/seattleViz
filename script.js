@@ -39,7 +39,7 @@
     .attr('id','bars');
 
   var yAxisElement = canvas.append('g')
-    .attr("transform", "translate(150,28)")
+    .attr("transform", "translate(150,10)")
     .attr('id','yaxis');
 
   var redrawChart = function () {
@@ -59,7 +59,7 @@
 
     var xscale = d3.scale.linear()
       .domain([0,maxCount])
-      .range([0,width - 150]); //Remove the left offset
+      .range([0,width - 150 - 50]); //Remove the left offset and add padding for labels
 
     var yscale = d3.scale.linear()
       .domain([0,types.length])
@@ -90,7 +90,8 @@
       .enter()
       .append('rect')
       .attr({
-        fill: function(d,i){ return colorScale(i); }
+        fill: function(d,i){ return colorScale(i); },
+        class: "bar"
       });
       //.attr({x:0,y:function(d,i){ return yscale(i)+19; }, fill: myColors});
       //.style('fill',function(d,i){ return colorScale(i); })
@@ -104,7 +105,7 @@
       .attr({
         height: height / types.length,
         width: function(d) { return xscale(d); },
-        y: function(d,i){ return yscale(i)+19; }
+        y: function(d,i){ return yscale(i); }
       });
 
     var transitext = d3.select('#bars')
@@ -113,7 +114,7 @@
       .enter()
       .append('text')
       .attr("class", "bar-label")
-      .style({'fill':'#fff','font-size':'16px'});
+      //.style({'fill':'#fff','font-size':'16px'});
 
     d3.select("#bars")
       .selectAll("text")
@@ -122,8 +123,8 @@
       .ease("quad")
       .text(function(d){ return d; })
       .attr({
-        x:function(d) { return xscale(d)-20; },
-        y:function(d,i){ return yscale(i)+35; }
+        x:function(d) { return xscale(d)+20; },
+        y:function(d,i){ return yscale(i)+16; }
       })
   }
 
