@@ -34,6 +34,10 @@
     .append('svg')
     .attr({'width':width,'height':height});
 
+  var chart = canvas.append('g')
+    .attr("transform", "translate(150,0)")
+    .attr('id','bars');
+
   var redrawChart = function () {
     var types = displayedData
       .map(function (item) { return item.type })
@@ -51,7 +55,7 @@
 
     var xscale = d3.scale.linear()
       .domain([0,maxCount])
-      .range([0,width]);
+      .range([0,width]); //TODO: Add margin
 
     var yscale = d3.scale.linear()
       .domain([0,types.length])
@@ -61,11 +65,7 @@
       .domain([0, types.length])
       .range(colors);
 
-    var xAxis = d3.svg.axis();
-    xAxis
-      .orient('bottom')
-      .scale(xscale);
-
+    //TODO: Fix axis moving around
     var yAxis = d3.svg.axis();
     yAxis
       .orient('left')
@@ -74,17 +74,18 @@
       .tickFormat(function(d,i){ return types[i]; })
       .tickValues(d3.range(17));
 
+    var y_xis = canvas.append('g')
+      .attr("transform", "translate(150,0)")
+      .attr('id','yaxis')
+      .call(yAxis);
+
     //var myColors = d3.scale.category20c();
-    var chart = canvas.append('g')
-      .attr('id','bars')
-      .selectAll('rect')
+    chart.selectAll('rect')
       .data(typeCounts)
       .enter()
       .append('rect')
-      .attr('height', height / types.length)
       .attr({
         x: 0,
-        y: function(d,i){ return yscale(i)+19; },
         fill: function(d,i){ return colorScale(i); }
       });
       //.attr({x:0,y:function(d,i){ return yscale(i)+19; }, fill: myColors});
@@ -95,15 +96,23 @@
       .data(typeCounts)
       .transition()
       .duration(1000) 
-      .attr("width", function(d) {return xscale(d); });
+      .attr({
+        height: height / types.length,
+        width: function(d) { return xscale(d); },
+        y: function(d,i){ return yscale(i)+19; }
+      });
 
     var transitext = d3.select('#bars')
       .selectAll('text')
       .data(typeCounts)
       .enter()
       .append('text')
-      .attr({'x':function(d) { return xscale(d)-100; },'y':function(d,i){ return yscale(i)+35; }})
-      .text(function(d){ return d; }).style({'fill':'#fff','font-size':'16px'});
+      .text(function(d){ return d; })
+      .attr({
+        x:function(d) { return xscale(d)-50; },
+        y:function(d,i){ return yscale(i)+35; }
+      })
+      .style({'fill':'#fff','font-size':'16px'});
   }
 
   var startClockCycle = function(data) {
