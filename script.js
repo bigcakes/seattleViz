@@ -11,7 +11,8 @@
   var speed = 1,
     paused = false,
     startTime = new Date(),
-    displayedData = [];
+    displayedData = [],
+    newestItems = [];
 
   var pullData = function(callback) {
     d3.json("data/seattle911Calls.json", function (err, data){
@@ -26,7 +27,7 @@
   }
 
 
-  //setup
+  //setup bar chart
   var margin = {top: 20, right: 20, bottom: 30, left: 40},
     width = parseInt(d3.select('#barChart').style("width"), 10) - margin.left - margin.right,
     height = parseInt(d3.select('#barChart').style("height"), 10) - margin.top - margin.bottom;
@@ -46,6 +47,17 @@
     .attr("transform", "translate(150,10)")
     .attr('id','yaxis');
 
+  //setup bubble chart
+  var bubbleWidth = parseInt(d3.select('#bubbleChart').style("width"), 10) - margin.left - margin.right,
+    bubbleHeight = parseInt(d3.select('#bubbleChart').style("height"), 10) - margin.top - margin.bottom;
+
+  var bubbleCanvas = d3.select('#bubbleChart')
+    .append('svg')
+    .attr({'width': bubbleWidth,'height': bubbleHeight});
+
+  var bubbleChart = bubbleCanvas.append('g')
+    .attr('id','bubbles');
+
 
   //update
   var redrawChart = function () {
@@ -63,6 +75,7 @@
 
     var maxCount = d3.max(typeCounts);
 
+    //Bar chart
     var xscale = d3.scale.linear()
       .domain([0,maxCount])
       .range([0,width - 150 - 50]); //Remove the left offset and add padding for labels
@@ -71,7 +84,6 @@
       .domain([0,types.length])
       .range([0,height]);
 
-    //TODO: Fix axis moving around
     var yAxis = d3.svg.axis();
     yAxis
       .orient('left')
@@ -87,7 +99,7 @@
       .call(yAxis);
 
     var rects = chart.selectAll('rect')
-      .data(typeCounts)
+      .data(typeCounts);
 
     rects
       .enter()
@@ -100,7 +112,7 @@
 
     rects
       .transition()
-      .duration(1000) 
+      .duration(1000)
       .ease("quad")
       .attr({
         height: height / types.length,
@@ -125,7 +137,34 @@
       .attr({
         x:function(d) { return xscale(d)+20; },
         y:function(d,i){ return yscale(i)+16; }
+      });
+
+
+    //Bubble chart
+    var newTypes = newestItems
+      .map(function (item) { return item.type })
+      .filter(function(item, i, ar){ return ar.indexOf(item) === i; });
+
+    var circles = bubbleChart.selectAll("circle.bubble")
+      .data(newTypes);
+
+    circles.enter().append("circle")
+      .attr({
+        cy: 60,
+        cx: function(d, i) { return i * 100 + 30; },
+        r: 20,
+        fill: function (d, i) { return colorScale(types.indexOf(d)); }
       })
+      .style("opacity", 1)
+      .transition()
+      .duration(1000)
+      .attr("r", 50)
+      .style("opacity", 0)
+      .remove()
+      //TODO: Maybe make the radius dependent on how many new items this cycle
+      //.attr("r", function(d) { return Math.sqrt(d); });
+
+    //circles.exit().remove();
   }
 
   var startClockCycle = function(data) {
@@ -152,15 +191,15 @@
           }
         }
 
-        var removedItems = [];
+        newestItems = [];
 
         if (newestItemIndex !== null) {
-          removedItems = data.splice(0, newestItemIndex + 1);
+          newestItems = data.splice(0, newestItemIndex + 1);
         }
 
-        displayedData = displayedData.concat(removedItems);
+        displayedData = displayedData.concat(newestItems);
 
-        console.log(startTime, speed, removedItems);
+        console.log(startTime, speed, newestItems);
 
         //if (displayedData.length === 5 || displayedData === 6) {
           redrawChart();
