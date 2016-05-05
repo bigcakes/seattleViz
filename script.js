@@ -26,15 +26,15 @@
   }
 
 
-
+  //setup
   var margin = {top: 20, right: 20, bottom: 30, left: 40},
-    width = parseInt(d3.select('#chart').style("width"), 10) - margin.left - margin.right,
-    height = parseInt(d3.select('#chart').style("height"), 10) - margin.top - margin.bottom;
+    width = parseInt(d3.select('#barChart').style("width"), 10) - margin.left - margin.right,
+    height = parseInt(d3.select('#barChart').style("height"), 10) - margin.top - margin.bottom;
 
   var colors = ['#3182bd','#6baed6','#9ecae1','#c6dbef','#e6550d','#fd8d3c','#fdae6b','#fdd0a2','#31a354','#74c476','#a1d99b','#c7e9c0','#756bb1','#9e9ac8','#bcbddc','#dadaeb', '636363', '969696', 'bdbdbd', 'd9d9d9'];
   var colorScale = d3.scale.category20();
 
-  var canvas = d3.select('#chart')
+  var canvas = d3.select('#barChart')
     .append('svg')
     .attr({'width':width,'height':height});
 
@@ -46,6 +46,8 @@
     .attr("transform", "translate(150,10)")
     .attr('id','yaxis');
 
+
+  //update
   var redrawChart = function () {
     var types = displayedData
       .map(function (item) { return item.type })
@@ -84,17 +86,19 @@
       .ease("quad") 
       .call(yAxis);
 
-    chart.selectAll('rect')
+    var rects = chart.selectAll('rect')
       .data(typeCounts)
+
+    rects
       .enter()
       .append('rect')
       .attr({
         fill: function (d, i) { return colorScale(i); },
-        class: "bar"
+        class: "bar",
+        y: function (d, i) { return yscale(i + 1); }
       });
 
-    var transit = chart.selectAll("rect")
-      .data(typeCounts)
+    rects
       .transition()
       .duration(1000) 
       .ease("quad")
@@ -104,15 +108,16 @@
         y: function(d,i){ return yscale(i); }
       });
 
-    var transitext = d3.select('#bars')
+    var texts = d3.select('#bars')
       .selectAll('text')
-      .data(typeCounts)
+      .data(typeCounts);
+
+    texts
       .enter()
       .append('text')
-      .attr("class", "bar-label")
+      .attr("class", "bar-label");
 
-    d3.select("#bars")
-      .selectAll("text")
+    texts
       .transition()
       .duration(1000)
       .ease("quad")
