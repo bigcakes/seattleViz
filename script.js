@@ -150,14 +150,16 @@
 
     circles.enter().append("circle")
       .attr({
-        cy: 60,
-        cx: function(d, i) { return i * 100 + 30; },
+        //cy: 60,
+        //cx: function(d, i) { return i * 100 + 30; },
+        cy: function () { return Math.floor(Math.random() * (bubbleHeight - 100)) + 50; },
+        cx: function () { return Math.floor(Math.random() * (bubbleWidth - 100)) + 50; },
         r: 20,
         fill: function (d, i) { return colorScale(types.indexOf(d)); }
       })
       .style("opacity", 1)
       .transition()
-      .duration(1000)
+      .duration(function () { return Math.floor(Math.random() * (1000 - 300)) + 300; })
       .attr("r", 50)
       .style("opacity", 0)
       .remove()
