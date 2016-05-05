@@ -154,12 +154,13 @@
         //cx: function(d, i) { return i * 100 + 30; },
         cy: function () { return Math.floor(Math.random() * (bubbleHeight - 100)) + 50; },
         cx: function () { return Math.floor(Math.random() * (bubbleWidth - 100)) + 50; },
-        r: 20,
+        r: 0,
         fill: function (d, i) { return colorScale(types.indexOf(d)); }
       })
       .style("opacity", 1)
       .transition()
-      .duration(function () { return Math.floor(Math.random() * (1000 - 300)) + 300; })
+      .delay(function () { return Math.floor(Math.random() * (200)); })
+      .duration(function () { return Math.floor(Math.random() * (2000 - 400)) + 400; })
       .attr("r", 50)
       .style("opacity", 0)
       .remove()
@@ -175,7 +176,11 @@
     //Fire initial blob here
     var removedItem = data.splice(0, 1);
 
+    newestItems = removedItem;
+
     displayedData = displayedData.concat(removedItem);
+
+    redrawChart();
 
     setInterval(function(){
       if (!paused) {
