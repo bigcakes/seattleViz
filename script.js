@@ -8,9 +8,9 @@
 (function (app) {
   "use strict";
 
-  var speed = 1,
+  var speed = 1000,
     paused = false,
-    startTime = new Date(),
+    currentTime = new Date(),
     displayedData = [],
     newestItems = [];
 
@@ -26,6 +26,45 @@
     })
   }
 
+  app.updateDisplay = function () {
+    d3.select(".time-display")
+      .text(currentTime);
+
+    d3.select(".speed-display")
+      .text(speed + "x" + (paused ? "(paused)" : ""));
+  }
+
+  app.increaseSpeed = function () {
+    if (speed < 1000000) {
+      speed *= 10;
+    }
+  }
+
+  app.decreaseSpeed = function () {
+    if (speed > 1) {
+      speed /= 10;
+    }
+  }
+
+  app.pause = function () {
+    paused = !paused;
+  }
+
+  d3.select(".increase-speed")
+    .on("click", function () {
+      app.increaseSpeed();
+    });
+
+  d3.select(".decrease-speed")
+    .on("click", function () {
+      app.decreaseSpeed();
+    });
+
+  d3.select(".pause")
+    .on("click", function () {
+      app.pause();
+    });
+
 
   //setup bar chart
   var margin = {top: 20, right: 20, bottom: 30, left: 40},
@@ -40,11 +79,11 @@
     .attr({'width':width,'height':height});
 
   var chart = canvas.append('g')
-    .attr("transform", "translate(150,0)")
+    .attr("transform", "translate(200,0)")
     .attr('id','bars');
 
   var yAxisElement = canvas.append('g')
-    .attr("transform", "translate(150,10)")
+    .attr("transform", "translate(200,10)")
     .attr('id','yaxis');
 
   //setup bubble chart
@@ -78,7 +117,7 @@
     //Bar chart
     var xscale = d3.scale.linear()
       .domain([0,maxCount])
-      .range([0,width - 150 - 50]); //Remove the left offset and add padding for labels
+      .range([0,width - 200 - 50]); //Remove the left offset and add padding for labels
 
     var yscale = d3.scale.linear()
       .domain([0,types.length])
@@ -135,7 +174,7 @@
       .ease("quad")
       .text(function(d){ return d; })
       .attr({
-        x:function(d) { return xscale(d)+20; },
+        x:function(d) { return xscale(d)+10; },
         y:function(d,i){ return yscale(i)+16; }
       });
 
@@ -150,8 +189,6 @@
 
     circles.enter().append("circle")
       .attr({
-        //cy: 60,
-        //cx: function(d, i) { return i * 100 + 30; },
         cy: function () { return Math.floor(Math.random() * (bubbleHeight - 100)) + 50; },
         cx: function () { return Math.floor(Math.random() * (bubbleWidth - 100)) + 50; },
         r: 0,
@@ -160,7 +197,7 @@
       .style("opacity", 1)
       .transition()
       .delay(function () { return Math.floor(Math.random() * (200)); })
-      .duration(function () { return Math.floor(Math.random() * (2000 - 400)) + 400; })
+      .duration(function () { return Math.floor(Math.random() * (2000 - 800)) + 800; })
       .attr("r", 50)
       .style("opacity", 0)
       .remove()
@@ -171,7 +208,7 @@
   }
 
   var startClockCycle = function(data) {
-    startTime = data[0].date;
+    currentTime = data[0].date;
 
     //Fire initial blob here
     var removedItem = data.splice(0, 1);
@@ -181,16 +218,17 @@
     displayedData = displayedData.concat(removedItem);
 
     redrawChart();
+    app.updateDisplay();
 
     setInterval(function(){
       if (!paused) {
         //redraw blobs and histogram (TODO)
-        startTime.setSeconds(startTime.getSeconds() + (1 * speed))
+        currentTime.setSeconds(currentTime.getSeconds() + (1 * speed))
 
         var newestItemIndex = null;
 
         for (var i = 0; i < data.length; i++) {
-          if (data[i].date < startTime) {
+          if (data[i].date < currentTime) {
             newestItemIndex = i;
           }
           else {
@@ -206,25 +244,12 @@
 
         displayedData = displayedData.concat(newestItems);
 
-        console.log(startTime, speed, newestItems);
+        console.log(currentTime, speed, newestItems);
 
-        //if (displayedData.length === 5 || displayedData === 6) {
-          redrawChart();
-        //}
+        redrawChart();
       }
+      app.updateDisplay();
     }, 1000);
-  }
-
-  app.increaseSpeed = function() {
-    speed *= 10;
-  }
-
-  app.decreaseSpeed = function() {
-    speed /= 10;
-  }
-
-  app.pause = function() {
-    paused = !paused;
   }
 
   pullData(startClockCycle);
