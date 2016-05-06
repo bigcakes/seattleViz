@@ -9,6 +9,7 @@
   "use strict";
 
   var speed = 1000,
+    cycleTime = 200,
     paused = false,
     currentTime = new Date(),
     displayedData = [],
@@ -50,21 +51,6 @@
     paused = !paused;
   }
 
-  d3.select(".increase-speed")
-    .on("click", function () {
-      app.increaseSpeed();
-    });
-
-  d3.select(".decrease-speed")
-    .on("click", function () {
-      app.decreaseSpeed();
-    });
-
-  d3.select(".pause")
-    .on("click", function () {
-      app.pause();
-    });
-
 
   //setup bar chart
   var margin = {top: 20, right: 20, bottom: 30, left: 40},
@@ -97,6 +83,23 @@
   var bubbleChart = bubbleCanvas.append('g')
     .attr('id','bubbles');
 
+  //TODO: Clean up code duplication
+  var resizeChart = function () {
+    //bar
+    width = parseInt(d3.select('#barChart').style("width"), 10) - margin.left - margin.right;
+    height = parseInt(d3.select('#barChart').style("height"), 10) - margin.top - margin.bottom;
+
+    canvas.attr({'width':width,'height':height});
+
+    //bubble
+    bubbleWidth = parseInt(d3.select('#bubbleChart').style("width"), 10) - margin.left - margin.right;
+    bubbleHeight = parseInt(d3.select('#bubbleChart').style("height"), 10) - margin.top - margin.bottom;
+
+    bubbleCanvas.attr({'width': bubbleWidth,'height': bubbleHeight});
+
+    redrawChart();
+  }
+
 
   //update
   var redrawChart = function () {
@@ -127,13 +130,13 @@
     yAxis
       .orient('left')
       .scale(yscale)
-      .tickSize(1)
+      .tickSize(0)
       .tickFormat(function(d,i){ return types[i]; })
       .tickValues(d3.range(types.length));
 
     var y_xis = yAxisElement
       .transition()
-      .duration(1000)
+      .duration(cycleTime)
       .ease("quad") 
       .call(yAxis);
 
@@ -151,7 +154,7 @@
 
     rects
       .transition()
-      .duration(1000)
+      .duration(cycleTime)
       .ease("quad")
       .attr({
         height: height / types.length,
@@ -170,12 +173,12 @@
 
     texts
       .transition()
-      .duration(1000)
+      .duration(cycleTime)
       .ease("quad")
       .text(function(d){ return d; })
       .attr({
         x:function(d) { return xscale(d)+10; },
-        y:function(d,i){ return yscale(i)+16; }
+        y:function(d,i){ return yscale(i)+13; }
       });
 
 
@@ -223,7 +226,7 @@
     setInterval(function(){
       if (!paused) {
         //redraw blobs and histogram (TODO)
-        currentTime.setSeconds(currentTime.getSeconds() + (1 * speed))
+        currentTime.setMilliseconds(currentTime.getMilliseconds() + (cycleTime * speed))
 
         var newestItemIndex = null;
 
@@ -249,8 +252,26 @@
         redrawChart();
       }
       app.updateDisplay();
-    }, 1000);
+    }, cycleTime);
   }
+
+  d3.select(".increase-speed")
+    .on("click", function () {
+      app.increaseSpeed();
+    });
+
+  d3.select(".decrease-speed")
+    .on("click", function () {
+      app.decreaseSpeed();
+    });
+
+  d3.select(".pause")
+    .on("click", function () {
+      app.pause();
+    });
+
+  d3.select(window)
+    .on('resize', resizeChart);
 
   pullData(startClockCycle);
 
