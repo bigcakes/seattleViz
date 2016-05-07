@@ -221,7 +221,9 @@
             currentTime = newestItems[newestItems.length - 1].date; //Set final time
           }
 
+          //Unload work
           clearInterval(intervalHandle);
+          newestItems = [];
         }
 
         app.updateDisplay();
