@@ -9,7 +9,7 @@
   "use strict";
 
   var speed = 1000,
-    cycleTime = 200,
+    cycleTime = 500,
     paused = false,
     currentTime = new Date(),
     displayedData = [],
@@ -32,7 +32,7 @@
       .text(currentTime);
 
     d3.select(".speed-display")
-      .text(speed + "x" + (paused ? "(paused)" : ""));
+      .text(speed + "x");
   }
 
   app.increaseSpeed = function () {
@@ -49,6 +49,9 @@
 
   app.pause = function () {
     paused = !paused;
+
+    d3.select(".pause i")
+      .classed("fa-pause", !paused).classed("fa-play", paused);
   }
 
 
@@ -223,7 +226,7 @@
     redrawChart();
     app.updateDisplay();
 
-    setInterval(function(){
+    var intervalHandle = setInterval(function(){
       if (!paused) {
         //redraw blobs and histogram (TODO)
         currentTime.setMilliseconds(currentTime.getMilliseconds() + (cycleTime * speed))
@@ -250,6 +253,13 @@
         console.log(currentTime, speed, newestItems);
 
         redrawChart();
+      }
+      
+      if (!data.length) {
+        d3.select(".data-over")
+          .classed("hide", false);
+
+        clearInterval(intervalHandle);
       }
       app.updateDisplay();
     }, cycleTime);
