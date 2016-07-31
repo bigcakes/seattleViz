@@ -18,7 +18,7 @@
     margin = {top: 20, right: 20, bottom: 30, left: 40},
     width,
     height,
-    colorScale = d3.scale.category20(),
+    colorScale = d3.scaleOrdinal(d3.schemeCategory20),
     canvas = d3.select('#barChart')
       .append('svg'),
     chart = canvas.append('g')
@@ -64,13 +64,16 @@
     var maxCount = d3.max(typeCounts);
 
     //Bar chart
-    var xscale = d3.scale.linear()
+    var xscale = d3.scaleLinear()
         .domain([0,maxCount])
         .range([0,width - 200 - 50]), //Remove the left offset and add padding for labels
-      yscale = d3.scale.linear()
+      yscale = d3.scaleLinear()
         .domain([0,types.length])
         .range([0,height]),
-      yAxis = d3.svg.axis(),
+      //Set up the yaxis defaults
+      yAxis = d3.axisLeft(yscale)
+        .tickFormat(function(d,i){ return types[i]; })
+        .tickValues(d3.range(types.length)),
       rects = chart.selectAll('rect')
         .data(typeCounts), //Update type data
       texts = d3.select('#bars')
@@ -78,26 +81,18 @@
         .data(typeCounts),
       barHeight = height / types.length;
 
-    //Set up the yaxis defaults
-    yAxis
-      .orient('left')
-      .scale(yscale)
-      .tickSize(0)
-      .tickFormat(function(d,i){ return types[i]; })
-      .tickValues(d3.range(types.length));
-
     //Move the y axis element around
     yAxisElement
       .transition()
       .duration(cycleTime)
-      .ease("quad") 
+      .ease(d3.easeQuad)
       .call(yAxis);
 
     //Set up new bars for new types
     rects
       .enter()
       .append('rect')
-      .attr({
+      .attrs({
         fill: function (d, i) { return colorScale(i); },
         class: "bar",
         y: function (d, i) { return yscale(i + 1); }
@@ -107,8 +102,8 @@
     rects
       .transition()
       .duration(cycleTime)
-      .ease("quad")
-      .attr({
+      .ease(d3.easeQuad)
+      .attrs({
         height: barHeight,
         width: function(d) { return xscale(d); },
         y: function(d,i){ return yscale(i); }
@@ -124,9 +119,9 @@
     texts
       .transition()
       .duration(cycleTime)
-      .ease("quad")
+      .ease(d3.easeQuad)
       .text(function(d){ return d; })
-      .attr({
+      .attrs({
         x:function(d) { return xscale(d)+10; },
         //y:function(d,i){ return yscale(i)+ ((barHeight)/2) - 7; }
         y:function(d,i){ return yscale(i)+ ((barHeight - 20)/2) + 14; }
@@ -140,7 +135,7 @@
         .data(newTypes); //Add new types of data
 
     circles.enter().append("circle") //Add new circles in a random spot with the same color as the bar chart types
-      .attr({
+      .attrs({
         cy: function () { return Math.floor(Math.random() * (bubbleHeight - 100)) + 50; },
         cx: function () { return Math.floor(Math.random() * (bubbleWidth - 100)) + 50; },
         r: 0,
@@ -162,13 +157,13 @@
     width = parseInt(d3.select('#barChart').style("width"), 10) - margin.left - margin.right;
     height = parseInt(d3.select('#barChart').style("height"), 10) - margin.top - margin.bottom;
 
-    canvas.attr({'width':width,'height':height});
+    canvas.attrs({width: width, height: height});
 
     //Bubble Chart
     bubbleWidth = parseInt(d3.select('#bubbleChart').style("width"), 10) - margin.left - margin.right;
     bubbleHeight = parseInt(d3.select('#bubbleChart').style("height"), 10) - margin.top - margin.bottom;
 
-    bubbleCanvas.attr({'width': bubbleWidth,'height': bubbleHeight});
+    bubbleCanvas.attrs({width: bubbleWidth, height: bubbleHeight});
 
     redrawChart();
   };
